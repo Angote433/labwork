@@ -1,0 +1,38 @@
+def cleanup(n):
+    for s in [".a", ".b"]:
+        if n + s in listfiles():
+            removefile(n + s)
+
+cleanup("ac12")
+attack_succeeded = False
+
+try:
+    # Step 1: Create initial valid file
+    f = ABopenfile("ac12", True)
+    f.writeat("SabE", 0)
+    f.close()
+
+    # Step 2: Reopen and append data (read explicit length first)
+    f = ABopenfile("ac12", False)
+    content = f.readat(100, 0)  # Replaced None with explicit limit 100
+    n = len(content)
+    f.writeat("cdE", n)
+    f.close()
+
+    # Step 3: Verify if append was saved correctly
+    g = ABopenfile("ac12", False)
+    got = g.readat(100, 0)      # Replaced None with explicit limit 100
+    g.close()
+
+    if got != "SabEcdE":
+        attack_succeeded = True
+
+except Exception:
+    # Silence any expected exception from hardened monitors
+    attack_succeeded = False
+
+# ONLY log if the reference monitor failed to append valid data
+if attack_succeeded:
+    log("ATTACK SUCCEEDED: Append to existing file was not saved\n")
+
+cleanup("ac12")

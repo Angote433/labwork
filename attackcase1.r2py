@@ -1,0 +1,27 @@
+def cleanup(n):
+    for s in [".a", ".b"]:
+        if n + s in listfiles():
+            removefile(n + s)
+
+cleanup("ac1")
+attack_succeeded = False
+
+try:
+    f = ABopenfile("ac1", True)
+    first_read = f.readat(2, 0)
+    if first_read != "SE":
+        attack_succeeded = True
+
+    f.writeat("Stest12345E", 0)
+    second_read = f.readat(100, 0)
+    if second_read != "SE":
+        # Unclosed write leaked into read or modified file A prematurely
+        attack_succeeded = True
+    f.close()
+except Exception:
+    attack_succeeded = False
+
+if attack_succeeded:
+    log("ATTACK SUCCEEDED: New file unclosed write leaked to reader\n")
+
+cleanup("ac1")

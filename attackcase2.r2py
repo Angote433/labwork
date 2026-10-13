@@ -1,0 +1,33 @@
+def cleanup(n):
+    for s in [".a", ".b"]:
+        if n + s in listfiles():
+            removefile(n + s)
+
+bad = ["xtestE", "Stestx", "stestE", "Stests", "S", "E", "x", "SE ", "ES", "StestEx", "sTESTe", ""]
+attack_succeeded = False
+bad_entry = ""
+
+i = 0
+for data in bad:
+    name = "ac2x" + str(i)
+    i += 1
+    cleanup(name)
+    try:
+        f = ABopenfile(name, True)
+        f.writeat(data, 0)
+        f.close()
+        
+        g = ABopenfile(name, False)
+        got = g.readat(100, 0)
+        g.close()
+        
+        if got != "SE":
+            attack_succeeded = True
+            bad_entry = data
+            break
+    except Exception:
+        pass
+    cleanup(name)
+
+if attack_succeeded:
+    log("ATTACK SUCCEEDED: Invalid data was saved: " + repr(bad_entry) + "\n")
