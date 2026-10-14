@@ -1,46 +1,26 @@
 def cleanup(n):
-    for s in [".a", ".b"]:
-        if n + s in listfiles():
-            removefile(n + s)
+  for s in [".a", ".b"]:
+    if n + s in listfiles():
+      removefile(n + s)
 
-def start_writer(f, holder):
-    def run():
-        while not holder["stop"]:
-            try:
-                f.writeat("SaaaE", 0)
-                f.writeat("xaaax", 0)
-            except Exception:
-                pass
-    createthread(run)
+def flag(msg):
+  log("ATTACK SUCCEEDED: " + msg + "\n")
 
-big = "S" + "x" * 1000 + "E"
-attack_succeeded = False
-
-for i in range(5):
-    cleanup("ac9")
-    try:
-        f = ABopenfile("ac9", True)
-        f.writeat(big, 0)
-        f.close()
-
-        f = ABopenfile("ac9", False)
-        holder = {"stop": False}
-        start_writer(f, holder)
-        sleep(0.01)
-        f.close()
-        holder["stop"] = True
-
-        g = ABopenfile("ac9", False)
-        got = g.readat(10000, 0)
-        g.close()
-
-        if got[0:1] != "S" or got[-1:] != "E":
-            attack_succeeded = True
-            break
-    except Exception:
-        pass
-
-if attack_succeeded:
-    log("ATTACK SUCCEEDED: Thread race allowed invalid data into valid file\n")
-
-cleanup("ac9")
+# A failed write past the end must not damage the monitor's state.
+cleanup("ac10")
+try:
+  f = ABopenfile("ac10", True)
+  try:
+    f.writeat("zzzz", 100)
+  except Exception:
+    pass
+  f.writeat("SabE", 0)
+  f.close()
+  g = ABopenfile("ac10", False)
+  got = g.readat(None, 0)
+  g.close()
+  if got != "SabE":
+    flag("after a write past EOF the file is " + repr(got))
+except Exception:
+  flag("normal operations raised an error after a write past EOF")
+cleanup("ac10")

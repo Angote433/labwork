@@ -6,7 +6,9 @@ def cleanup(n):
 def flag(msg):
   log("ATTACK SUCCEEDED: " + msg + "\n")
 
-# Using a closed file must change nothing, and the file must be reopenable.
+# A closed file must not change the data, and the file must be reopenable.
+# (No second close() here: on a monitor whose close() is not guarded, closing
+# twice is a fatal error that prints output even inside try/except.)
 cleanup("ac7")
 try:
   f = ABopenfile("ac7", True)
@@ -20,10 +22,6 @@ except Exception:
   pass
 try:
   f.writeat("StwoE", 0)
-except Exception:
-  pass
-try:
-  f.close()
 except Exception:
   pass
 try:

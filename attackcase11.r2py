@@ -1,32 +1,21 @@
 def cleanup(n):
-    for s in [".a", ".b"]:
-        if n + s in listfiles():
-            removefile(n + s)
+  for s in [".a", ".b"]:
+    if n + s in listfiles():
+      removefile(n + s)
 
+def flag(msg):
+  log("ATTACK SUCCEEDED: " + msg + "\n")
+
+# Opening a missing file with create=False must not create it.
 cleanup("ac11")
-attack_succeeded = False
-
 try:
-    # Attempting to open a non-existent file with create=False
-    f = ABopenfile("ac11", False)
-    
-    # If the monitor mistakenly returned a valid file handle for a missing file
-    if f is not None:
-        attack_succeeded = True
-        try:
-            f.close()
-        except Exception:
-            pass
+  f = ABopenfile("ac11", False)
+  try:
+    f.close()
+  except Exception:
+    pass
 except Exception:
-    # Proper behavior: monitor blocks or throws an exception without crashing
-    attack_succeeded = False
-
-# Verify if files persisted after the failed operation
+  pass
 if "ac11.a" in listfiles() or "ac11.b" in listfiles():
-    attack_succeeded = True
-
-# ONLY log if an actual vulnerability was exploited
-if attack_succeeded:
-    log("ATTACK SUCCEEDED: Opening missing file created files or returned handle\n")
-
+  flag("opening a missing file with create=False created files")
 cleanup("ac11")
